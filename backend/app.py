@@ -40,10 +40,12 @@ async def lifespan(app: FastAPI):
     settings = config.load()
     if settings.get("hid_listener_enabled", True):
         app.state.hid.start()
-    if settings.get("camera_enabled"):
+    # Dashboard uses the browser camera. Only grab the device in OpenCV
+    # when someone asked for a native preview window (--preview).
+    if app.state.preview_window and settings.get("camera_enabled"):
         app.state.camera.start(
             int(settings.get("camera_index", 0)),
-            preview_window=app.state.preview_window,
+            preview_window=True,
         )
     yield
     scan_handler.remove_listener(app.state.hub.publish)

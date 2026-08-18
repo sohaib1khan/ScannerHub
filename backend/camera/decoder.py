@@ -12,6 +12,21 @@ except Exception:  # pragma: no cover - missing libzbar or pyzbar
     pyzbar_decode = None
 
 
+def decode_jpeg(data: bytes) -> list[dict[str, Any]]:
+    """Decode barcodes from a JPEG/PNG byte buffer uploaded by the dashboard."""
+    if not data:
+        return []
+    try:
+        import cv2
+    except Exception:
+        return []
+    arr = np.frombuffer(data, dtype=np.uint8)
+    frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+    if frame is None:
+        return []
+    return decode_frame(frame)
+
+
 def decode_frame(frame: np.ndarray) -> list[dict[str, Any]]:
     """Return unique barcode payloads found in a BGR or grayscale frame."""
     if pyzbar_decode is None or frame is None:

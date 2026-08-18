@@ -6,7 +6,7 @@ Every scan is saved with a timestamp and where it came from (camera vs hardware 
 
 It is meant to be started by hand. Nothing runs in the background or at login.
 
-Works on **Linux** and **Windows**. The backend talks to the camera and scanner on the host. The dashboard is just HTML served by that same backend.
+Works on **Linux** and **Windows**. The dashboard opens the webcam in the browser (you get the usual Allow prompt). USB scanners are read by the Python backend.
 
 ---
 
@@ -100,10 +100,15 @@ You want `"status": "ok"`.
 
 ### On the dashboard
 
-1. Pick a camera and click **Start camera**. You should see a live preview.
-2. Hold a QR or barcode in front of the camera. It should show up in the live feed and in `data/scan_history.json`.
-3. For a USB scanner: click the **Hardware scanner input** box and scan. If Linux blocked the global keyboard hook, this box is the way in (see below).
-4. Sounds and the duplicate-scan window are under Settings.
+1. Click **Start camera**. The browser will pop up a permission prompt — choose **Allow**.
+2. You should see a live preview. If it says blocked, click **Allow camera** again, or the camera icon in the address bar, and set this site to Allow.
+3. Hold a QR or barcode in front of the camera. It should show up in the live feed and in `data/scan_history.json`.
+4. For a USB scanner: click the **Hardware scanner input** box and scan. If Linux blocked the global keyboard hook, this box is the way in (see below).
+5. Sounds and the duplicate-scan window are under Settings.
+
+Use `http://127.0.0.1:8765/` (localhost). Browsers will not offer a camera prompt on a random LAN IP unless you use HTTPS.
+
+If the camera light was on but the preview was black, that was the backend holding the webcam. Starting the camera from the dashboard now uses the browser camera instead.
 
 Scan history, settings, and default beep files live in `data/` next to the project (or next to the exe if you built one).
 

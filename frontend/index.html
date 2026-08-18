@@ -26,8 +26,14 @@
       <section class="panel">
         <h2>Camera</h2>
         <div class="preview-wrap">
-          <img id="preview" alt="Camera preview" />
-          <div id="preview-empty" class="preview-empty">Select a camera to start a live preview</div>
+          <video id="preview" autoplay playsinline muted></video>
+          <div id="preview-empty" class="preview-empty">
+            Click <strong>Start camera</strong>. The browser will ask to use your camera — choose Allow.
+          </div>
+          <div id="camera-permission" class="preview-empty permission-box" hidden>
+            <p id="camera-permission-text">Camera access is blocked.</p>
+            <button id="btn-allow-camera" type="button">Allow camera</button>
+          </div>
         </div>
         <label class="field">
           Device

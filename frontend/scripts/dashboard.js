@@ -78,9 +78,11 @@ async function refreshStatus() {
     const data = await api("/status");
     setPill("api-pill", "API online", "ok");
     const cam = data.camera || {};
-    if (cam.running) setPill("camera-pill", `Camera ${cam.index}`, "ok");
-    else if (cam.status === "error" || cam.status === "disconnected") setPill("camera-pill", cam.error || "Camera error", "bad");
-    else setPill("camera-pill", "Camera idle", "");
+    if (!(window.ScannerHub.cameraIsLive && window.ScannerHub.cameraIsLive())) {
+      if (cam.running) setPill("camera-pill", `Camera ${cam.index}`, "ok");
+      else if (cam.status === "error" || cam.status === "disconnected") setPill("camera-pill", cam.error || "Camera error", "bad");
+      else setPill("camera-pill", "Camera idle", "");
+    }
 
     const hid = data.scanner || {};
     if (hid.running && hid.mode === "global_hook") setPill("hid-pill", "HID hook on", "ok");

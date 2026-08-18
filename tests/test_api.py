@@ -40,6 +40,17 @@ def test_manual_scan_and_list(data_dir, monkeypatch):
         assert listed["scans"][0]["value"] == "QR-123"
 
 
+def test_camera_frame_rejects_junk(data_dir):
+    with _client(data_dir) as client:
+        response = client.post(
+            "/api/camera/frame",
+            files={"file": ("frame.jpg", b"not-a-jpeg", "image/jpeg")},
+        )
+        assert response.status_code == 200
+        assert response.json()["ok"] is True
+        assert response.json()["scans"] == []
+
+
 def test_cameras_endpoint_uses_enumerator(data_dir, monkeypatch):
     monkeypatch.setattr(
         "camera.enumerator.list_cameras",

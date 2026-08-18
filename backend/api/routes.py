@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from audio import player
-from camera import enumerator
+from camera import decoder, enumerator
 from events import scan_handler
 from paths import sounds_dir
 from settings import config
@@ -116,6 +116,18 @@ def attach(app: FastAPI) -> None:
         config.save({"camera_enabled": False})
         return {"camera": result}
 
+    @router.post("/camera/frame")
+    async def camera_frame(file: UploadFile = File(...)) -> dict[str, Any]:
+        """Decode a JPEG frame from the browser camera and log any barcodes."""
+        payload = await file.read()
+        found = decoder.decode_jpeg(payload)
+        scans = []
+        for item in found:
+            event = scan_handler.handle_scan(item["value"], "camera", item["format"])
+            if event is not None:
+                scans.append(event)
+        return {"ok": True, "scans": scans}
+
     @router.get("/camera/preview")
     async def camera_preview() -> StreamingResponse:
         async def frames() -> AsyncIterator[bytes]:
@@ -169,11 +181,8 @@ def attach(app: FastAPI) -> None:
                 app.state.hid.start()
             else:
                 app.state.hid.stop()
-        if "camera_enabled" in payload or "camera_index" in payload:
-            if updated["camera_enabled"]:
-                app.state.camera.start(int(updated["camera_index"]))
-            elif "camera_enabled" in payload:
-                app.state.camera.stop()
+        if payload.get("camera_enabled") is False:
+            app.state.camera.stop()
         return {"settings": updated, "camera": app.state.camera.status(), "scanner": app.state.hid.status()}
 
     @router.post("/settings/sound")
