@@ -1,0 +1,29 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Runtime data created when the app runs
+data/scan_history.json
+data/settings.json
+data/sounds/custom_*
+data/sounds/*.wav
+
+# Build artifacts
+build/
+dist/
+*.spec.bak
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.cursor/
+
+# Local notes
+blueprint.md
+*.log

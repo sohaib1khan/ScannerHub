@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScannerHub</title>
+    <link rel="stylesheet" href="/styles/main.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">SH</span>
+        <div>
+          <h1>ScannerHub</h1>
+          <p>Camera + HID barcode station</p>
+        </div>
+      </div>
+      <div class="status-pills">
+        <span id="api-pill" class="pill">API connecting</span>
+        <span id="camera-pill" class="pill">Camera idle</span>
+        <span id="hid-pill" class="pill">Scanner idle</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>Camera</h2>
+        <div class="preview-wrap">
+          <img id="preview" alt="Camera preview" />
+          <div id="preview-empty" class="preview-empty">Select a camera to start a live preview</div>
+        </div>
+        <label class="field">
+          Device
+          <select id="camera-select"></select>
+        </label>
+        <div class="row">
+          <button id="btn-start-camera" type="button">Start camera</button>
+          <button id="btn-stop-camera" class="ghost" type="button">Stop</button>
+          <button id="btn-refresh-cameras" class="ghost" type="button">Refresh</button>
+        </div>
+      </section>
+
+      <section class="panel feed-panel">
+        <div class="panel-head">
+          <h2>Live scan feed</h2>
+          <button id="btn-clear" class="ghost" type="button">Clear log</button>
+        </div>
+        <label class="field hid-field">
+          Hardware scanner input
+          <input
+            id="hid-input"
+            type="text"
+            autocomplete="off"
+            placeholder="Focus here and scan, or type a code and press Enter"
+          />
+        </label>
+        <ul id="scan-list" class="scan-list"></ul>
+      </section>
+
+      <aside class="side">
+        <section class="panel">
+          <h2>Stats</h2>
+          <div class="stats">
+            <div><span id="stat-total">0</span><label>Total scans</label></div>
+            <div><span id="stat-camera">0</span><label>Camera</label></div>
+            <div><span id="stat-hid">0</span><label>External</label></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Settings</h2>
+          <label class="field">
+            Dedupe window (seconds)
+            <input id="dedupe" type="number" min="0.2" max="30" step="0.1" />
+          </label>
+          <label class="check">
+            <input id="hid-enabled" type="checkbox" />
+            Enable HID scanner listener
+          </label>
+          <button id="btn-save-settings" type="button">Save settings</button>
+
+          <h3>Sounds</h3>
+          <div class="sound-row">
+            <span>Camera</span>
+            <input id="sound-camera" type="file" accept=".wav,.mp3,.ogg" />
+            <button data-test-sound="camera" class="ghost" type="button">Test</button>
+          </div>
+          <div class="sound-row">
+            <span>External</span>
+            <input id="sound-hid" type="file" accept=".wav,.mp3,.ogg" />
+            <button data-test-sound="external_scanner" class="ghost" type="button">Test</button>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <script src="/scripts/dashboard.js"></script>
+    <script src="/scripts/camera_picker.js"></script>
+    <script src="/scripts/settings.js"></script>
+  </body>
+</html>
