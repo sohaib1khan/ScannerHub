@@ -6,3 +6,5 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
+    # Nginx proxies /api to host.docker.internal:8765.
+    # If you changed SCANNERHUB_PORT, update frontend/nginx.conf to match.

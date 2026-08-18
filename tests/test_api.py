@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+import pytest
 
 from app import create_app
 
@@ -49,6 +50,36 @@ def test_camera_frame_rejects_junk(data_dir):
         assert response.status_code == 200
         assert response.json()["ok"] is True
         assert response.json()["scans"] == []
+
+
+def test_status_reports_decoder(data_dir):
+    with _client(data_dir) as client:
+        body = client.get("/api/status").json()
+        assert "decoder" in body
+        assert "zxingcpp" in body["decoder"]
+
+
+def test_camera_frame_decodes_code128(data_dir, monkeypatch):
+    zxingcpp = pytest.importorskip("zxingcpp")
+    import cv2
+    import numpy as np
+
+    monkeypatch.setattr("audio.player.play", lambda path: None)
+    barcode = zxingcpp.create_barcode("HELLO-SCAN", zxingcpp.BarcodeFormat.Code128)
+    image = zxingcpp.write_barcode_to_image(barcode, scale=3)
+    frame = cv2.cvtColor(np.array(image), cv2.COLOR_GRAY2BGR)
+    ok, jpeg = cv2.imencode(".jpg", frame)
+    assert ok
+    with _client(data_dir) as client:
+        response = client.post(
+            "/api/camera/frame",
+            files={"file": ("frame.jpg", jpeg.tobytes(), "image/jpeg")},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["hits"]
+        assert body["hits"][0]["value"] == "HELLO-SCAN"
+        assert body["debug"]["zxingcpp"] is True
 
 
 def test_cameras_endpoint_uses_enumerator(data_dir, monkeypatch):

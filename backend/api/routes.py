@@ -79,6 +79,7 @@ def attach(app: FastAPI) -> None:
             "status": "ok",
             "service": "scannerhub",
             "version": getattr(app.state, "version", "0.1.0"),
+            "decoder": decoder.engine_status(),
         }
 
     @router.get("/status")
@@ -88,6 +89,7 @@ def attach(app: FastAPI) -> None:
             "camera": app.state.camera.status(),
             "scanner": app.state.hid.status(),
             "stats": json_log.stats(),
+            "decoder": decoder.engine_status(),
         }
 
     @router.get("/cameras")
@@ -120,13 +122,13 @@ def attach(app: FastAPI) -> None:
     async def camera_frame(file: UploadFile = File(...)) -> dict[str, Any]:
         """Decode a JPEG frame from the browser camera and log any barcodes."""
         payload = await file.read()
-        found = decoder.decode_jpeg(payload)
+        found, debug = decoder.decode_jpeg_info(payload)
         scans = []
         for item in found:
             event = scan_handler.handle_scan(item["value"], "camera", item["format"])
             if event is not None:
                 scans.append(event)
-        return {"ok": True, "scans": scans}
+        return {"ok": True, "scans": scans, "hits": found, "debug": debug}
 
     @router.get("/camera/preview")
     async def camera_preview() -> StreamingResponse:

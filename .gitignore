@@ -11,6 +11,7 @@ data/scan_history.json
 data/settings.json
 data/sounds/custom_*
 data/sounds/*.wav
+data/last_camera_frame.jpg
 
 # Build artifacts
 build/
@@ -27,3 +28,4 @@ Thumbs.db
 # Local notes
 blueprint.md
 *.log
+.env

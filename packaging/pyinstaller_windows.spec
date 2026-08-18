@@ -35,6 +35,7 @@ a = Analysis(
         "uvicorn.lifespan.on",
         "pyzbar",
         "pyzbar.pyzbar",
+        "zxingcpp",
         "cv2",
         "pygrabber",
         "pygrabber.dshow_graph",

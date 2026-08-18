@@ -16,6 +16,8 @@ def data_dir(tmp_path, monkeypatch):
     target = tmp_path / "data"
     target.mkdir()
     monkeypatch.setenv("SCANNERHUB_DATA_DIR", str(target))
+    monkeypatch.delenv("SCANNERHUB_PORT", raising=False)
+    monkeypatch.delenv("SCANNERHUB_HOST", raising=False)
     from settings import config
     from events import scan_handler
 

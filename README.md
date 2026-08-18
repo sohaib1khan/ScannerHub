@@ -15,13 +15,14 @@ Works on **Linux** and **Windows**. The dashboard opens the webcam in the browse
 - Python 3.11 or newer
 - A webcam (built-in or USB) if you want camera scanning
 - A HID barcode scanner if you want hardware scans (optional)
-- `libzbar` on Linux (used to decode barcodes)
 
 On **Debian / Ubuntu / similar**:
 
 ```bash
-sudo apt install -y python3 python3-venv python3-pip libzbar0 libgl1
+sudo apt install -y python3 python3-venv python3-pip libgl1
 ```
+
+`libzbar0` is optional. Camera scanning is done in the browser. Install `libzbar0` only if you also want the Python backend to decode uploaded frames.
 
 On **Windows**:
 
@@ -77,20 +78,40 @@ From the repo root, with the venv active:
 python backend/app.py
 ```
 
-Then open:
+Default URL is **http://127.0.0.1:8765/**
 
-**http://127.0.0.1:8765/**
+### Change the port
+
+If 8765 is already taken, pick another port. Easiest: copy `.env.example` to `.env` and edit it:
+
+```bash
+cp .env.example .env
+```
+
+```
+SCANNERHUB_HOST=127.0.0.1
+SCANNERHUB_PORT=9000
+```
+
+Then run `python backend/app.py` as usual. Or set it for one run:
+
+```bash
+SCANNERHUB_PORT=9000 python backend/app.py
+python backend/app.py --port 9000
+```
+
+Order of precedence: `--port` flag, then `SCANNERHUB_PORT` in the environment / `.env`, then `api_port` in `data/settings.json`, then 8765.
 
 Useful flags:
 
 ```bash
 python backend/app.py --open
-python backend/app.py --host 127.0.0.1 --port 8765
+python backend/app.py --host 127.0.0.1 --port 9000
 ```
 
 `--open` launches the dashboard in your default browser. A packaged build does that on its own.
 
-Check that the API is up:
+Check that the API is up (use the same port you started with):
 
 ```bash
 curl http://127.0.0.1:8765/api/health
@@ -102,11 +123,11 @@ You want `"status": "ok"`.
 
 1. Click **Start camera**. The browser will pop up a permission prompt — choose **Allow**.
 2. You should see a live preview. If it says blocked, click **Allow camera** again, or the camera icon in the address bar, and set this site to Allow.
-3. Hold a QR or barcode in front of the camera. It should show up in the live feed and in `data/scan_history.json`.
+3. Hold a QR or barcode inside the green box. It should show up in the live feed and in `data/scan_history.json`.
 4. For a USB scanner: click the **Hardware scanner input** box and scan. If Linux blocked the global keyboard hook, this box is the way in (see below).
 5. Sounds and the duplicate-scan window are under Settings.
 
-Use `http://127.0.0.1:8765/` (localhost). Browsers will not offer a camera prompt on a random LAN IP unless you use HTTPS.
+Use localhost (`127.0.0.1`), not a LAN IP. Browsers will not offer a camera prompt on a random hostname unless you use HTTPS.
 
 If the camera light was on but the preview was black, that was the backend holding the webcam. Starting the camera from the dashboard now uses the browser camera instead.
 
@@ -139,7 +160,7 @@ docker compose up --build
 
 Dashboard: **http://127.0.0.1:8080/**
 
-That container proxies `/api` to `127.0.0.1:8765` on the host. You do not need Docker to use the app day to day.
+That container proxies `/api` to the backend on the host (default port 8765 in `frontend/nginx.conf`). If you changed `SCANNERHUB_PORT`, update that nginx file to match. You do not need Docker to use the app day to day.
 
 ---
 

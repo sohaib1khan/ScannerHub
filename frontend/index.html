@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ScannerHub</title>
-    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/main.css?v=11" />
   </head>
   <body>
     <header class="topbar">
@@ -21,12 +21,15 @@
         <span id="hid-pill" class="pill">Scanner idle</span>
       </div>
     </header>
+    <p id="action-log" class="action-log" aria-live="polite">Ready. Start the camera or type a code into the hardware scanner box.</p>
 
     <main class="layout">
       <section class="panel">
         <h2>Camera</h2>
         <div class="preview-wrap">
           <video id="preview" autoplay playsinline muted></video>
+          <div id="scan-reticle" class="scan-reticle" hidden></div>
+          <div id="snap-flash" class="snap-flash" hidden></div>
           <div id="preview-empty" class="preview-empty">
             Click <strong>Start camera</strong>. The browser will ask to use your camera — choose Allow.
           </div>
@@ -36,20 +39,41 @@
           </div>
         </div>
         <label class="field">
-          Device
-          <select id="camera-select"></select>
+          <span id="camera-list-label">Device</span>
+          <select id="camera-select" size="4">
+            <option value="">Default camera</option>
+          </select>
         </label>
+        <div id="camera-choices" class="camera-choices"></div>
         <div class="row">
-          <button id="btn-start-camera" type="button">Start camera</button>
-          <button id="btn-stop-camera" class="ghost" type="button">Stop</button>
-          <button id="btn-refresh-cameras" class="ghost" type="button">Refresh</button>
+          <button id="btn-start-camera" type="button" title="Open a browser prompt and start live scanning">Start camera</button>
+          <button id="btn-snap-scan" type="button" title="Take a still photo and search it hard for a barcode">Snap &amp; scan</button>
+          <button id="btn-stop-camera" class="ghost" type="button" title="Turn the webcam off">Stop camera</button>
+          <button id="btn-refresh-cameras" class="ghost" type="button" title="Reload the list of webcams">Refresh cameras</button>
+          <label class="file-btn ghost" title="Decode a QR or barcode from a photo">
+            Scan image
+            <input id="scan-file" type="file" accept="image/*" />
+          </label>
+          <canvas id="scan-debug" class="scan-debug" width="200" height="120" hidden></canvas>
         </div>
+        <p id="scan-hint" class="hint">Printed labels need light and distance. Hold the item <strong>12–18 inches</strong> from the webcam (not up against the lens), face the barcode at the camera, and keep it still. A phone screen code is sharper than paper — that is expected.</p>
       </section>
 
       <section class="panel feed-panel">
         <div class="panel-head">
           <h2>Live scan feed</h2>
-          <button id="btn-clear" class="ghost" type="button">Clear log</button>
+          <div class="row">
+            <button id="btn-copy-all" class="ghost" type="button" title="Copy every scanned code">Copy all</button>
+            <button id="btn-clear" class="ghost" type="button" title="Delete all saved scans from this machine">Clear history</button>
+          </div>
+        </div>
+        <div id="last-scan" class="last-scan" hidden>
+          <div class="last-scan-kicker">Latest scan</div>
+          <div id="last-scan-value" class="last-scan-value"></div>
+          <div id="last-scan-meta" class="last-scan-meta"></div>
+          <div class="row">
+            <button id="btn-copy-last" class="ghost" type="button">Copy code</button>
+          </div>
         </div>
         <label class="field hid-field">
           Hardware scanner input
@@ -83,25 +107,27 @@
             <input id="hid-enabled" type="checkbox" />
             Enable HID scanner listener
           </label>
-          <button id="btn-save-settings" type="button">Save settings</button>
+          <button id="btn-save-settings" type="button" title="Write these options to data/settings.json">Save settings</button>
 
           <h3>Sounds</h3>
           <div class="sound-row">
             <span>Camera</span>
             <input id="sound-camera" type="file" accept=".wav,.mp3,.ogg" />
-            <button data-test-sound="camera" class="ghost" type="button">Test</button>
+            <button data-test-sound="camera" class="ghost" type="button" title="Play the camera scan beep">Play camera beep</button>
           </div>
           <div class="sound-row">
             <span>External</span>
             <input id="sound-hid" type="file" accept=".wav,.mp3,.ogg" />
-            <button data-test-sound="external_scanner" class="ghost" type="button">Test</button>
+            <button data-test-sound="external_scanner" class="ghost" type="button" title="Play the hardware scanner beep">Play scanner beep</button>
           </div>
         </section>
       </aside>
     </main>
 
-    <script src="/scripts/dashboard.js"></script>
-    <script src="/scripts/camera_picker.js"></script>
-    <script src="/scripts/settings.js"></script>
+    <script src="/scripts/jsQR.js?v=11"></script>
+    <script src="/scripts/zxing.min.js?v=11"></script>
+    <script src="/scripts/dashboard.js?v=11"></script>
+    <script src="/scripts/camera_picker.js?v=11"></script>
+    <script src="/scripts/settings.js?v=11"></script>
   </body>
 </html>
