@@ -242,14 +242,47 @@ button.err { background: var(--danger); color: #fff; border-color: var(--danger)
 
 .sound-row {
   display: grid;
-  grid-template-columns: 72px 1fr auto;
+  grid-template-columns: 72px 1fr auto auto;
   gap: 8px;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   font-size: 0.85rem;
   color: var(--muted);
 }
-.sound-row input[type="file"] { width: 100%; color: var(--muted); }
+.sound-row select {
+  background: #10161d;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  width: 100%;
+  color-scheme: dark;
+}
+.sound-using {
+  margin: 0 0 10px 80px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.sound-upload-row {
+  grid-template-columns: 72px 1fr 1fr;
+  margin-top: 8px;
+}
+.sound-row input[type="file"] {
+  display: none;
+}
+.hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin: 8px 0 12px;
+}
+.hint code {
+  font-size: 0.78rem;
+  background: #10161d;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
 
 .file-btn {
   display: inline-flex;

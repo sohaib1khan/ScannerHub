@@ -50,3 +50,21 @@ def test_zxingcpp_reads_dark_code128():
     found = decode_frame(dark)
     assert found
     assert found[0]["value"] == "DARKCODE"
+
+
+def test_consensus_drops_near_miss_serials():
+    from camera.decoder import _pick_consensus
+
+    votes = {
+        "C02XG1ABJG5H": {"count": 3, "conservative": 2, "format": "Code128"},
+        "C02XG1ABJG5I": {"count": 3, "conservative": 2, "format": "Code128"},
+    }
+    assert _pick_consensus(votes) == []
+
+
+def test_mac_payloads_must_be_hex():
+    from camera.decoder import _plausible_value
+
+    assert _plausible_value("AA:BB:CC:DD:EE:FF", "Code128") is True
+    assert _plausible_value("AA:BB:CC:DD:EE:FG", "Code128") is False
+    assert _plausible_value("C02XG1ABJG5H", "Code128") is True

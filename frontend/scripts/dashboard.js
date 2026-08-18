@@ -238,6 +238,38 @@ function unlockScanAudio() {
 }
 
 function playScanBeep(source) {
+  const selected = (window.ScannerHub.selectedSounds || {})[source];
+  playSoundId(selected, source);
+}
+
+function setSoundCatalog(sounds, selected) {
+  window.ScannerHub.soundCatalog = sounds || [];
+  window.ScannerHub.selectedSounds = {
+    camera: "beep-high",
+    external_scanner: "beep-low",
+    ...(selected || {}),
+  };
+}
+
+function playSoundId(soundId, source) {
+  unlockScanAudio();
+  const id = soundId || (source === "external_scanner" ? "beep-low" : "beep-high");
+  if (id === "none" || id === "silent") return;
+  const item = (window.ScannerHub.soundCatalog || []).find((entry) => entry.id === id || entry.file === id);
+  if (item && item.url) {
+    try {
+      const audio = new Audio(item.url);
+      audio.volume = 0.7;
+      audio.play().catch(() => playToneFallback(source));
+      return;
+    } catch (err) {
+      console.warn("Could not play selected sound", err);
+    }
+  }
+  playToneFallback(source);
+}
+
+function playToneFallback(source) {
   const ctx = getAudioContext();
   if (!ctx) return;
   const play = () => {
@@ -370,6 +402,10 @@ window.ScannerHub = {
   renderStats,
   prependScan,
   playScanBeep,
+  playSoundId,
+  setSoundCatalog,
+  soundCatalog: [],
+  selectedSounds: { camera: "beep-high", external_scanner: "beep-low" },
   say,
   setButtonState,
   resetButtonSoon,

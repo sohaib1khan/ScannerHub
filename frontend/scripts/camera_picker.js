@@ -17,6 +17,8 @@ const cameraState = {
   imageCapture: null,
   snapping: false,
   snapTimer: null,
+  confirmValue: "",
+  confirmCount: 0,
 };
 
 function storedCameraId() {
@@ -381,8 +383,10 @@ function startScanLoop() {
   cameraState.imageCapture = null;
   cameraState.frames = 0;
   cameraState.misses = 0;
+  cameraState.confirmValue = "";
+  cameraState.confirmCount = 0;
   cameraState.detector = createBarcodeDetector();
-  setScanHint("Looking for printed barcodes. Hold the item 12–18 inches away under a lamp — not against the lens.");
+  setScanHint("Looking for printed barcodes. Serials and MACs are logged only after a checksum-valid, confirmed read.");
   warnIfDecoderMissing();
   cameraState.scanTimer = setInterval(scanCurrentFrame, 280);
 }
@@ -492,6 +496,11 @@ async function decodeOnBackend(canvas) {
   }
   if (hits.length) {
     const first = hits[0];
+    if (first.confidence === "confirm" && !scans.length) {
+      return acceptConfirmedHit(first);
+    }
+    cameraState.confirmValue = "";
+    cameraState.confirmCount = 0;
     if (scans.length) {
       setScanHint(`Native decoder read ${first.value} · ${String(first.format || "code").replaceAll("_", " ")}`);
       window.ScannerHub.say(`Camera scan logged: ${first.value}`, "ok");
@@ -500,7 +509,29 @@ async function decodeOnBackend(canvas) {
     }
     return { value: first.value, format: first.format, fromBackend: true };
   }
+  cameraState.confirmValue = "";
+  cameraState.confirmCount = 0;
   return null;
+}
+
+function acceptConfirmedHit(hit) {
+  const value = String(hit.value || "").trim();
+  if (!value) return null;
+  if (cameraState.confirmValue === value) {
+    cameraState.confirmCount += 1;
+  } else {
+    cameraState.confirmValue = value;
+    cameraState.confirmCount = 1;
+    setScanHint(`Saw ${value} once — hold still so the next frame can confirm it.`);
+    return null;
+  }
+  if (cameraState.confirmCount < 2) {
+    setScanHint(`Confirming ${value}… keep the label still.`);
+    return null;
+  }
+  cameraState.confirmValue = "";
+  cameraState.confirmCount = 0;
+  return { value, format: hit.format, fromBackend: false };
 }
 
 async function reportScan(value, format) {
@@ -732,6 +763,11 @@ function sharpenCanvas(canvas) {
     }
   }
   ctx.putImageData(image, 0, 0);
+}
+
+function isMatrixFormat(format) {
+  const key = String(format || "").toUpperCase().replace(/[\s_-]/g, "");
+  return key.includes("QR") || key.includes("DATAMATRIX") || key.includes("PDF417") || key.includes("AZTEC");
 }
 
 function decodeWithJsQR(canvas) {
@@ -968,7 +1004,8 @@ async function scanCurrentFrame() {
       console.warn("Native decoder request failed", err);
     }
     if (!found && cameraState.frames % 3 === 0) {
-      found = decodePrinted(canvas, video);
+      const qr = decodeWithJsQR(crop) || decodeWithJsQR(canvas);
+      if (qr) found = qr;
     }
     if (found) {
       cameraState.misses = 0;
@@ -1117,12 +1154,11 @@ async function scanStillAggressively(source) {
   variants.push(enhanced);
 
   const tile = workCanvas("stillTile");
-  const rotated = workCanvas("stillRot");
   let tried = 0;
-  const total = collectStillTiles(source).length * variants.length * 2;
+  const total = collectStillTiles(source).length * variants.length;
   for (const variant of variants) {
     const fromDetector = await decodeWithDetector(variant);
-    if (fromDetector) return fromDetector;
+    if (fromDetector && isMatrixFormat(fromDetector.format)) return fromDetector;
     const jobs = collectStillTiles(variant);
     for (const job of jobs) {
       const rect = clampRect(job.x, job.y, job.w, job.h, variant.width, variant.height);
@@ -1134,11 +1170,8 @@ async function scanStillAggressively(source) {
         await yieldToUi();
       }
       let found = await decodeWithDetector(tile);
-      if (found) return found;
-      found = decodeCanvasSet(tile);
-      if (found) return found;
-      rotateCanvas90(tile, rotated);
-      found = decodeCanvasSet(rotated);
+      if (found && isMatrixFormat(found.format)) return found;
+      found = decodeWithJsQR(tile);
       if (found) return found;
     }
   }

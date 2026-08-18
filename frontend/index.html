@@ -110,16 +110,33 @@
           <button id="btn-save-settings" type="button" title="Write these options to data/settings.json">Save settings</button>
 
           <h3>Sounds</h3>
+          <p class="hint">Pick a sound, click <strong>Test</strong> to hear it, then <strong>Use</strong> to assign it. Scanning keeps the previous sound until you click Use. Drop files in <code>data/sounds/</code> or upload below, then Test before Use.</p>
           <div class="sound-row">
             <span>Camera</span>
-            <input id="sound-camera" type="file" accept=".wav,.mp3,.ogg" />
-            <button data-test-sound="camera" class="ghost" type="button" title="Play the camera scan beep">Play camera beep</button>
+            <select id="sound-camera-select" title="Preview a camera scan sound"></select>
+            <button data-test-sound="camera" class="ghost" type="button" title="Play this sound without assigning it">Test</button>
+            <button data-assign-sound="camera" type="button" title="Assign this sound to camera scans">Use</button>
           </div>
+          <p class="sound-using" id="sound-camera-using">In use: High beep</p>
           <div class="sound-row">
             <span>External</span>
-            <input id="sound-hid" type="file" accept=".wav,.mp3,.ogg" />
-            <button data-test-sound="external_scanner" class="ghost" type="button" title="Play the hardware scanner beep">Play scanner beep</button>
+            <select id="sound-hid-select" title="Preview a hardware scanner sound"></select>
+            <button data-test-sound="external_scanner" class="ghost" type="button" title="Play this sound without assigning it">Test</button>
+            <button data-assign-sound="external_scanner" type="button" title="Assign this sound to hardware scans">Use</button>
           </div>
+          <p class="sound-using" id="sound-hid-using">In use: Low beep</p>
+          <div class="sound-row sound-upload-row">
+            <span>Add file</span>
+            <label class="file-btn ghost" title="Upload a sound for camera scans">
+              Camera
+              <input id="sound-camera" type="file" accept=".wav,.mp3,.ogg" />
+            </label>
+            <label class="file-btn ghost" title="Upload a sound for hardware scanner scans">
+              Scanner
+              <input id="sound-hid" type="file" accept=".wav,.mp3,.ogg" />
+            </label>
+          </div>
+          <button id="btn-refresh-sounds" class="ghost" type="button" title="Reload sounds from data/sounds">Refresh sound list</button>
         </section>
       </aside>
     </main>

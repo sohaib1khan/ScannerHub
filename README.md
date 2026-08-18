@@ -175,6 +175,30 @@ These do not need a camera.
 
 ---
 
+## Scan sounds
+
+The dashboard plays a sound in the **browser tab** when a scan is logged. Pick one under **Settings → Sounds**:
+
+- High beep, Mid beep, Low beep
+- Double beep
+- Success chime
+- Chirp
+- Soft ding
+- Click
+- Silent
+
+Camera scans and hardware-scanner scans can use different sounds. Choose a sample, click **Test** to hear it, then **Use** to assign it. Scanning keeps the previous sound until you click Use.
+
+### Add your own
+
+1. Put a `.wav`, `.mp3`, or `.ogg` file in **`data/sounds/`** (created the first time you run the app, next to the project or next to the packaged exe).
+2. Click **Refresh sound list** on the dashboard, or use **Add file** in Settings (Camera / Scanner) to upload through the browser.
+3. Click **Test**, then **Use** to assign it.
+
+Built-in samples are generated as WAV files in that same folder (`beep-high.wav`, `success.wav`, and so on). You can replace those files if you want, but uploading or dropping a new file is safer.
+
+---
+
 ## Build a standalone exe
 
 Linux:
@@ -226,6 +250,8 @@ USB scanner (keystrokes)  ─┘         │
 | POST | `/api/scans/manual` | Typed / HID-fallback scan |
 | WS | `/api/ws/scans` | Live events |
 | GET/POST | `/api/settings` | Camera, HID, dedupe, sounds |
+| GET | `/api/settings/sounds` | Built-in and user scan sounds |
+| GET | `/api/sounds/{file}` | Play a sound file |
 
 Same routes exist without the `/api` prefix (`/health`, `/cameras`, …).
 

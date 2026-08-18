@@ -21,8 +21,8 @@ DEFAULTS: dict[str, Any] = {
     "api_host": DEFAULT_HOST,
     "api_port": DEFAULT_PORT,
     "sounds": {
-        "camera": None,
-        "external_scanner": None,
+        "camera": "beep-high",
+        "external_scanner": "beep-low",
     },
 }
 

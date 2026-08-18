@@ -10,7 +10,10 @@ __pycache__/
 data/scan_history.json
 data/settings.json
 data/sounds/custom_*
+data/sounds/user_*
 data/sounds/*.wav
+data/sounds/*.mp3
+data/sounds/*.ogg
 data/last_camera_frame.jpg
 
 # Build artifacts

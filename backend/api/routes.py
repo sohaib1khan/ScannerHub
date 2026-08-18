@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from audio import player
@@ -125,6 +126,8 @@ def attach(app: FastAPI) -> None:
         found, debug = decoder.decode_jpeg_info(payload)
         scans = []
         for item in found:
+            if item.get("confidence") == "confirm":
+                continue
             event = scan_handler.handle_scan(item["value"], "camera", item["format"])
             if event is not None:
                 scans.append(event)
@@ -187,6 +190,30 @@ def attach(app: FastAPI) -> None:
             app.state.camera.stop()
         return {"settings": updated, "camera": app.state.camera.status(), "scanner": app.state.hid.status()}
 
+    @router.get("/settings/sounds")
+    def list_sounds() -> dict[str, Any]:
+        settings = config.load()
+        selected = settings.get("sounds") or {}
+        return {
+            "sounds": player.list_sounds(),
+            "selected": {
+                "camera": selected.get("camera") or player.default_id("camera"),
+                "external_scanner": selected.get("external_scanner") or player.default_id("external_scanner"),
+            },
+            "folder": str(sounds_dir()),
+        }
+
+    @router.get("/sounds/{filename}")
+    def get_sound_file(filename: str) -> FileResponse:
+        name = Path(filename).name
+        if not player.is_safe_sound_name(name) or Path(name).suffix.lower() not in ALLOWED_SOUND_TYPES:
+            raise HTTPException(status_code=404, detail="Sound not found")
+        path = (sounds_dir() / name).resolve()
+        if path.parent != sounds_dir().resolve() or not path.is_file():
+            raise HTTPException(status_code=404, detail="Sound not found")
+        media = {".wav": "audio/wav", ".mp3": "audio/mpeg", ".ogg": "audio/ogg"}[path.suffix.lower()]
+        return FileResponse(path, media_type=media, filename=name)
+
     @router.post("/settings/sound")
     async def upload_sound(source: str = Form(...), file: UploadFile = File(...)) -> dict[str, Any]:
         if source not in {"camera", "external_scanner"}:
@@ -194,22 +221,19 @@ def attach(app: FastAPI) -> None:
         suffix = Path(file.filename or "").suffix.lower()
         if suffix not in ALLOWED_SOUND_TYPES:
             raise HTTPException(status_code=400, detail="Sound file must be .wav, .mp3, or .ogg")
-        dest = sounds_dir() / f"custom_{source}{suffix}"
+        stem = re.sub(r"[^A-Za-z0-9._-]+", "-", Path(file.filename or "sound").stem).strip("-") or "sound"
+        dest = sounds_dir() / f"user_{source}_{stem}{suffix}"
         dest.write_bytes(await file.read())
-        settings = config.load()
-        sounds = dict(settings.get("sounds") or {})
-        sounds[source] = str(dest)
-        config.save({"sounds": sounds})
-        return {"ok": True, "path": str(dest), "settings": config.load()}
+        return {"ok": True, "id": dest.stem, "path": str(dest), "sounds": player.list_sounds()}
 
     @router.post("/settings/sound/test")
-    def test_sound(source: str = "camera") -> dict[str, Any]:
+    def test_sound(source: str = "camera", sound: str | None = None) -> dict[str, Any]:
         if source not in {"camera", "external_scanner"}:
             raise HTTPException(status_code=400, detail="source must be camera or external_scanner")
         settings = config.load()
-        custom = (settings.get("sounds") or {}).get(source)
-        player.play(player.resolve_sound(source, custom))
-        return {"ok": True, "source": source}
+        selected = sound or (settings.get("sounds") or {}).get(source)
+        player.play(player.resolve_sound(source, selected))
+        return {"ok": True, "source": source, "sound": selected}
 
     @router.websocket("/ws/scans")
     async def ws_scans(ws: WebSocket) -> None:
